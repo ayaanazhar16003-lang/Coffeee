@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -75,7 +74,7 @@
     <div class="logo">
       <div class="cup">☕</div>
       <div>
-        <div class="title">Brew a coffee! </div>
+        <div class="title">Coffee Finder</div>
         <div class="small">Find drinks from what you already have</div>
       </div>
     </div>
@@ -160,7 +159,7 @@
 const coffeeDrinks = [
   { id: 'latte', name:'Latte', ingredients:['espresso','milk'], tags:['milky'], sweetness:2, bitterness:2, desc:'Smooth espresso with steamed milk.', image:'latte.jpg', method:['Pull a shot of espresso','Steam milk until creamy','Pour milk over espresso']},
   { id: 'cappuccino', name:'Cappuccino', ingredients:['espresso','milk','milk foam'], tags:['milky'], sweetness:2, bitterness:3, desc:'Equal parts espresso, steamed milk and foam.', image:'cappuccino.jpg', method:['Pull espresso shot','Steam milk and create foam','Spoon foam on top']},
-  { id: 'americano', name:'Americano', ingredients:['espresso','hot water'], tags:['bitter','strong'], sweetness:1, bitterness:4, desc:'Espresso diluted with hot water for a longer drink.', image:'americano.jpg', method:['Pull espresso','Add hot water to taste']},
+  { id: 'americano', name:'Americano', ingredients:['espresso','hot water'], tags:['bitter','strong'], sweetness:1, bitterness:4, desc:'Espresso diluted with hot water for a longer drink.', image:'images/americano.jpg', method:['Pull espresso','Add hot water to taste']},
   { id: 'espresso', name:'Espresso', ingredients:['espresso'], tags:['strong','bitter'], sweetness:0, bitterness:5, desc:'Concentrated coffee shot. Intense and bold.', image:'espresso.jpg', method:['Pull single/double shot using espresso machine']},
   { id: 'mocha', name:'Mocha', ingredients:['espresso','milk','chocolate'], tags:['sweet'], sweetness:4, bitterness:2, desc:'Chocolate + espresso + milk — dessert like.', image:'mocha.jpg', method:['Mix chocolate with steamed milk','Pour over espresso','Top with whipped cream if desired']},
   { id: 'macchiato', name:'Macchiato', ingredients:['espresso','milk foam'], tags:['bitter','strong'], sweetness:1, bitterness:4, desc:'Espresso "stained" with a dash of foam.', image:'macchiato.jpg', method:['Pull espresso shot','Top with a small dollop of milk foam']},
@@ -182,7 +181,7 @@ const state = { favorites: new Set(), theme: 'light' };
 function loadFavorites(){try{const raw=localStorage.getItem('cf_favs'); if(raw){const arr=JSON.parse(raw); state.favorites=new Set(arr);} else state.favorites=new Set(); renderFavs();}catch(e){console.warn(e)} }
 function saveFavorites(){localStorage.setItem('cf_favs', JSON.stringify(Array.from(state.favorites))); renderFavs(); }
 
-function renderFavs(){const el=document.getElementById('favList'); el.innerHTML=''; if(state.favorites.size===0){el.innerHTML='<div class="muted small">No favorites yet — click the heart on a drink card.</div>';return;} for(const id of state.favorites){const drink=coffeeDrinks.find(d=>d.id===id); if(!drink) continue; const div=document.createElement('div'); div.className='fav-item'; div.innerHTML=`<div style="width:44px;height:44px;border-radius:8px;overflow:hidden"><img src="${drink.image}" style="width:100%;height:100%;object-fit:cover"></div><div style="flex:1"><div style="font-weight:700">${drink.name}</div><div class="muted small">${drink.tags.join(', ')}</div></div><button class="secondary" data-id="${id}">Remove</button>`; el.appendChild(div); div.querySelector('button').addEventListener('click', e=>{ state.favorites.delete(id); saveFavorites(); }); }
+function renderFavs(){const el=document.getElementById('favList'); el.innerHTML=''; if(state.favorites.size===0){el.innerHTML='<div class="muted small">No favorites yet — click the heart on a drink card.</div>';return;} for(const id of state.favorites){const drink=coffeeDrinks.find(d=>d.id===id); if(!drink) continue; const div=document.createElement('div'); div.className='fav-item'; div.innerHTML=<div style="width:44px;height:44px;border-radius:8px;overflow:hidden"><img src="${drink.image}" style="width:100%;height:100%;object-fit:cover"></div><div style="flex:1"><div style="font-weight:700">${drink.name}</div><div class="muted small">${drink.tags.join(', ')}</div></div><button class="secondary" data-id="${id}">Remove</button>; el.appendChild(div); div.querySelector('button').addEventListener('click', e=>{ state.favorites.delete(id); saveFavorites(); }); }
 }
 
 // ---------- Matching algorithm ----------
@@ -238,15 +237,15 @@ function renderResults(list, opts={}){
   const container = document.getElementById('results'); container.innerHTML='';
   const info = document.getElementById('matchesInfo');
   if(list.length===0){ info.innerText='No coffee drinks found. Try toggling "Allow partial matches" or try fewer ingredients.'; return; }
-  info.innerText = `${list.length} match(es) — click a drink to view steps. Use favorites to save.`;
+  info.innerText = ${list.length} match(es) — click a drink to view steps. Use favorites to save.;
 
   for(const drink of list){
     const card = document.createElement('div'); card.className='drink-card fade-in card';
-    card.innerHTML = `
+    card.innerHTML = 
       <img src="${drink.image}" alt="${drink.name}">
       <div class="drink-body">
         <div class="drink-name">${drink.name}</div>
-        <div class="badges">${drink.ingredients.map(i=>`<div class="badge">${i}</div>`).join('')}</div>
+        <div class="badges">${drink.ingredients.map(i=><div class="badge">${i}</div>).join('')}</div>
         <div class="muted">${drink.desc}</div>
         <div style="margin-top:8px"><div class="meter" aria-hidden><i style="width:${drink.matchPct}%"></i></div></div>
         <div class="meta">
@@ -257,7 +256,7 @@ function renderResults(list, opts={}){
           </div>
         </div>
       </div>
-    `;
+    ;
     container.appendChild(card);
 
     // favorite toggle
@@ -274,7 +273,7 @@ function showDetails(drink){
   // create backdrop
   const backdrop = document.createElement('div'); backdrop.className='modal-backdrop';
   const modal = document.createElement('div'); modal.className='card'; modal.style.maxHeight='90vh'; modal.style.overflow='auto'; modal.style.width='min(760px,94%)';
-  modal.innerHTML = `
+  modal.innerHTML = 
     <div style="display:flex;gap:12px;align-items:center">
       <div style="width:88px;height:88px;border-radius:12px;overflow:hidden"><img src="${drink.image}" style="width:100%;height:100%;object-fit:cover"></div>
       <div>
@@ -288,9 +287,9 @@ function showDetails(drink){
     <div style="display:flex;gap:18px;flex-wrap:wrap">
       <div style="flex:1;min-width:260px">
         <h4>Ingredients</h4>
-        <ul>${drink.ingredients.map(i=>`<li>${i}</li>`).join('')}</ul>
+        <ul>${drink.ingredients.map(i=><li>${i}</li>).join('')}</ul>
         <h4>Method</h4>
-        <ol>${drink.method.map(s=>`<li>${s}</li>`).join('')}</ol>
+        <ol>${drink.method.map(s=><li>${s}</li>).join('')}</ol>
       </div>
       <div style="width:240px;min-width:200px">
         <h4>Description</h4>
@@ -300,7 +299,7 @@ function showDetails(drink){
         <div style="margin-top:12px;display:flex;gap:8px"><button id="addFavBtn" class="secondary">${state.favorites.has(drink.id)?'Remove Favorite':'Add Favorite'}</button></div>
       </div>
     </div>
-  `;
+  ;
 
   backdrop.appendChild(modal);
   document.body.appendChild(backdrop);
