@@ -4,70 +4,87 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Coffee Drink Finder</title>
+  <title>Coffee Drink Finder — Upgraded</title>
   <style>
+    /* palette */
     :root{
-      --bg:#f6f1ed; --card:#fff; --accent:#6b3e26; --muted:#6f6f6f; --cream:#fff6ee; --glass: rgba(255,255,255,0.6);
+      --bg1:#f6f1ed; --bg2:#efe7db; --card:#fff; --accent:#6b3e26; --accent-2:#d6a77a; --muted:#6f6f6f; --cream:#fff6ee;
+      --glass: rgba(255,255,255,0.6);
+      --steam: rgba(255,255,255,0.35);
     }
-    [data-theme="dark"]{ --bg:#1b1816; --card:#272322; --accent:#d6a77a; --muted:#cfc6be; --cream:#332b26; --glass: rgba(255,255,255,0.04);} 
+    @media (prefers-color-scheme:dark){:root{--bg1:#1b1816;--bg2:#1b1714;--card:#272322;--accent:#d6a77a;--accent-2:#6b3e26;--muted:#cfc6be;--cream:#332b26;--steam: rgba(255,255,255,0.03);}}
 
     *{box-sizing:border-box}
-    body{margin:0;font-family:Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background:linear-gradient(180deg,var(--bg),#efe7db); color:#222; min-height:100vh}
-    header{display:flex;align-items:center;gap:16px;padding:20px 28px}
+    html,body{height:100%}
+    body{margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial; background:linear-gradient(180deg,var(--bg1),var(--bg2)); color:var(--text,#222); min-height:100vh}
+
+    /* header */
+    header{display:flex;align-items:center;gap:16px;padding:18px 28px;position:relative}
     .logo{display:flex;align-items:center;gap:12px}
-    .logo .cup{width:48px;height:48px;border-radius:10px;background:linear-gradient(180deg,#ffffff,#f3e6db);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(107,62,38,0.14)}
-    .title{font-weight:700;font-size:20px;color:var(--accent)}
+    .cup{width:56px;height:56px;border-radius:12px;background:linear-gradient(180deg,#fff,#f3e6db);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(0,0,0,0.08)}
+    .title{font-weight:800;font-size:20px;color:var(--accent)}
+    .subtitle{font-size:13px;color:var(--muted)}
 
-    .container{max-width:1100px;margin:0 auto;padding:20px}
-    .panel{display:grid;grid-template-columns:1fr 420px;gap:24px}
+    /* steam */
+    .steam-wrap{position:absolute;left:96px;top:12px;width:80px;height:80px;pointer-events:none}
+    .steam{position:absolute;left:10px;width:12px;height:30px;background:linear-gradient(180deg,rgba(255,255,255,0.6),rgba(255,255,255,0));border-radius:20px;opacity:0.6;filter:blur(6px);animation:steamRise 3s infinite}
+    .steam:nth-child(2){left:28px;animation-delay:0.6s}
+    .steam:nth-child(3){left:46px;animation-delay:1.2s}
+    @keyframes steamRise{0%{transform:translateY(10px) scale(0.7);opacity:0}30%{opacity:0.7}100%{transform:translateY(-40px) scale(1);opacity:0}}
 
-    .card{background:var(--card);border-radius:14px;padding:18px;box-shadow:0 6px 20px rgba(20,20,20,0.06);}
+    /* layout */
+    .container{max-width:1120px;margin:0 auto;padding:18px}
+    .panel{display:grid;grid-template-columns:1fr 380px;gap:20px}
+    .card{background:var(--card);border-radius:14px;padding:16px;box-shadow:0 8px 30px rgba(10,10,10,0.04)}
 
-    .search-row{display:flex;gap:12px}
-    input[type=text]{flex:1;padding:12px 14px;border-radius:10px;border:1px solid #e6dcd2;font-size:15px}
-    select{padding:12px;border-radius:10px;border:1px solid #e6dcd2;font-size:15px}
-    button{background:var(--accent);color:white;padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:600}
-    button.secondary{background:transparent;border:1px solid #e6dcd2;color:var(--accent)}
+    /* search */
+    .search-row{display:flex;gap:8px;align-items:center}
+    .input-wrap{position:relative;flex:1}
+    input[type=text]{width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);font-size:15px}
+    .suggestions{position:absolute;left:0;right:0;top:44px;background:var(--card);border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.06);overflow:hidden;z-index:20}
+    .suggestions div{padding:8px 10px;border-bottom:1px solid rgba(0,0,0,0.04);cursor:pointer}
+    .suggestions div:last-child{border-bottom:0}
+    .chip-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+    .chip{padding:6px 10px;border-radius:999px;border:1px solid rgba(0,0,0,0.04);cursor:pointer;display:inline-flex;gap:8px;align-items:center}
 
-    .hint{color:var(--muted);font-size:13px;margin-top:8px}
+    /* taste selector */
+    .taste-buttons{display:flex;gap:8px;margin-top:8px}
+    .taste{padding:6px 10px;border-radius:10px;border:1px solid rgba(0,0,0,0.05);cursor:pointer;display:flex;align-items:center;gap:8px}
 
-    .results{margin-top:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
-    .drink-card{display:flex;flex-direction:column;border-radius:12px;overflow:hidden;border:1px solid rgba(0,0,0,0.04)}
-    .drink-card img{width:100%;height:140px;object-fit:cover}
-    .drink-body{padding:12px}
-    .drink-name{font-weight:700;margin:0 0 6px}
-    .badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+    /* results */
+    .results{margin-top:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+    .drink-card{border-radius:12px;overflow:hidden;border:1px solid rgba(0,0,0,0.04);display:flex;flex-direction:column}
+    .drink-card img{width:100%;height:150px;object-fit:cover}
+    .drink-body{padding:12px;display:flex;flex-direction:column;gap:8px}
+    .badges{display:flex;gap:8px;flex-wrap:wrap}
     .badge{font-size:12px;padding:4px 8px;border-radius:999px;background:var(--cream);border:1px solid rgba(0,0,0,0.04)}
+
+    .meta{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
     .muted{color:var(--muted);font-size:13px}
 
-    .meta{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
-    .fav{cursor:pointer;border-radius:8px;padding:6px}
+    /* meters */
+    .meters{display:flex;gap:8px}
+    .meter{background:#eee;border-radius:6px;overflow:hidden;height:8px;flex:1}
+    .meter > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent-2),var(--accent));width:0%}
+    .meter-label{font-size:11px;color:var(--muted);}
 
-    .side{position:sticky;top:20px;height:fit-content}
-    .prefs{display:flex;flex-direction:column;gap:10px}
+    /* missing badge */
+    .missing-badge{background:#fff0f0;color:#8a2a2a;padding:6px;border-radius:8px;font-size:12px;border:1px solid rgba(138,42,42,0.06)}
 
-    .toggle{display:flex;gap:8px;align-items:center}
-    .small{font-size:13px;color:var(--muted)}
-
-    .footer{margin-top:30px;text-align:center;color:var(--muted);font-size:13px;padding-bottom:100px}
-
-    /* responsive */
-    @media (max-width:980px){.panel{grid-template-columns:1fr} .side{position:static}}
-
-    /* subtle animations */
-    .fade-in{animation:fadeIn .35s ease both}
-    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-
-    /* match meter */
-    .meter{height:8px;background:linear-gradient(90deg,#eee,#eee);border-radius:6px;overflow:hidden}
-    .meter > i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#d6a77a,#6b3e26)}
-
-    /* favorites list */
+    /* side panel */
+    .prefs .small{margin-bottom:6px}
     .fav-list{display:flex;flex-direction:column;gap:8px}
     .fav-item{display:flex;gap:10px;align-items:center;padding:8px;border-radius:8px}
 
-    /* modal backdrop */
-    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:9998}
+    /* quiz */
+    .quiz-row{display:flex;gap:8px;margin-top:10px}
+    .quiz-step{margin-top:8px}
+
+    /* footer */
+    .footer{margin-top:20px;text-align:center;color:var(--muted);font-size:13px}
+
+    /* responsive */
+    @media (max-width:980px){.panel{grid-template-columns:1fr} .steam-wrap{display:none}}
   </style>
 </head>
 <body>
@@ -76,67 +93,71 @@
       <div class="cup">☕</div>
       <div>
         <div class="title">Coffee Finder</div>
-        <div class="small">Find drinks from what you already have</div>
+        <div class="subtitle">Tell us what you have — we'll suggest drinks</div>
       </div>
     </div>
     <div style="flex:1"></div>
-    <div class="toggle">
-      <label class="small" for="themeToggle">Dark</label>
-      <input id="themeToggle" type="checkbox">
+
+    <div class="steam-wrap" aria-hidden>
+      <div class="steam"></div>
+      <div class="steam"></div>
+      <div class="steam"></div>
+    </div>
+
+    <div style="display:flex;gap:10px;align-items:center">
+      <button id="quizBtn" class="secondary">Build My Coffee</button>
+      <label style="display:flex;align-items:center;gap:8px"><input id="themeToggle" type="checkbox"> <span class="small">Dark</span></label>
     </div>
   </header>
 
   <main class="container">
     <div class="panel">
       <section class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-          <div>
-            <h2 style="margin:0">What do you have?</h2>
-            <div class="hint">Type ingredients separated by commas (e.g. espresso, milk, chocolate). The app supports fuzzy matching.</div>
-          </div>
-          <div style="text-align:right">
-            <div class="small">Quick tips</div>
-            <div class="muted" style="font-size:13px">Try: "espresso, milk" or "espresso"</div>
-          </div>
-        </div>
+        <h3 style="margin:0 0 8px">What do you have?</h3>
+        <div class="hint">Type ingredients (comma separated) or click suggestions. Live search updates results.</div>
 
-        <div style="margin-top:12px" class="search-row">
-          <input id="ingredientInput" type="text" placeholder="eg: espresso, milk, ice">
+        <div class="search-row" style="margin-top:12px">
+          <div class="input-wrap">
+            <input id="ingredientInput" type="text" placeholder="e.g. espresso, milk, chocolate">
+            <div id="suggestions" class="suggestions" style="display:none"></div>
+          </div>
           <select id="preferenceSelect" aria-label="preference">
-            <option value="any">Any taste</option>
-            <option value="sweet">Sweet</option>
-            <option value="bitter">Bitter</option>
-            <option value="milky">Milky</option>
-            <option value="strong">Strong</option>
+            <option value="any">Any</option>
+            <option value="sweet">🍫 Sweet</option>
+            <option value="bitter">☕ Bitter</option>
+            <option value="milky">🥛 Milky</option>
+            <option value="strong">💥 Strong</option>
+            <option value="cold">❄️ Cold</option>
           </select>
           <button id="searchBtn">Find</button>
         </div>
 
-        <div style="display:flex;gap:8px;margin-top:10px">
+        <div class="chip-row" id="chipRow" style="margin-top:10px"></div>
+
+        <div style="display:flex;gap:8px;margin-top:12px">
           <button class="secondary" id="clearBtn">Clear</button>
           <button class="secondary" id="shuffleBtn">Surprise me</button>
-          <button class="secondary" id="randomMissingBtn">Show close matches</button>
+          <button class="secondary" id="randomMissingBtn">Close matches</button>
         </div>
 
-        <div id="matchesInfo" style="margin-top:14px" class="muted">No search yet. Try entering ingredients and press Find.</div>
+        <div id="matchesInfo" style="margin-top:14px" class="muted">No search yet. Start typing to see suggestions.</div>
 
-        <div id="results" class="results fade-in"></div>
-
+        <div id="results" class="results"></div>
       </section>
 
       <aside class="side">
         <div class="card">
-          <h3 style="margin-top:0">Preferences</h3>
+          <h4 style="margin:0">Preferences & Settings</h4>
           <div class="prefs">
-            <div class="small">Taste filter will boost drinks that match the selected flavor</div>
-            <label class="small" style="margin-top:8px"><input type="checkbox" id="allowPartial" checked> Allow partial ingredient matches</label>
-            <label class="small"><input type="checkbox" id="showMissingCount" checked> Show missing ingredients count</label>
-            <label class="small"><input type="checkbox" id="autoSuggest" checked> Auto-suggest similar ingredients</label>
+            <div class="small muted">Toggle options for matching behavior</div>
+            <label class="small"><input type="checkbox" id="allowPartial" checked> Allow partial matches</label>
+            <label class="small"><input type="checkbox" id="showMissingCount" checked> Show missing count</label>
+            <label class="small"><input type="checkbox" id="autoSuggest" checked> Auto-suggest ingredients</label>
           </div>
         </div>
 
         <div class="card" style="margin-top:12px">
-          <h3 style="margin-top:0">Favorites</h3>
+          <h4 style="margin:0">Favorites</h4>
           <div id="favList" class="fav-list"></div>
           <div style="display:flex;gap:8px;margin-top:10px">
             <button id="exportFav" class="secondary">Export</button>
@@ -146,193 +167,226 @@
         </div>
 
         <div class="card" style="margin-top:12px">
-          <h3 style="margin-top:0">About</h3>
-          <div class="small muted">Interactive demo using stored coffee drink data. Push to GitHub to share or host with GitHub Pages.</div>
+          <h4 style="margin:0">Quick Quiz</h4>
+          <div class="muted small">Use the Build My Coffee button (top-right) for a guided suggestion.</div>
         </div>
       </aside>
     </div>
 
-    <div class="footer">Made with ☕ · Try different taste filters and click a card for steps. Favorites persist in your browser.</div>
+    <div class="footer">Made with ☕ · Images should live in an `images/` folder next to this file.</div>
   </main>
 
+  <!-- modal container (reused) -->
+  <div id="modals" aria-hidden="true"></div>
+
 <script>
-// ---------- Data: coffee drinks (local images) ----------
+// ---------- Data (local images filenames) ----------
 const coffeeDrinks = [
-  { id: 'latte', name:'Latte', ingredients:['espresso','milk'], tags:['milky'], sweetness:2, bitterness:2, desc:'Smooth espresso with steamed milk.', image:'latte.jpg', method:['Pull a shot of espresso','Steam milk until creamy','Pour milk over espresso']},
-  { id: 'cappuccino', name:'Cappuccino', ingredients:['espresso','milk','milk foam'], tags:['milky'], sweetness:2, bitterness:3, desc:'Equal parts espresso, steamed milk and foam.', image:'cappuccino.jpg', method:['Pull espresso shot','Steam milk and create foam','Spoon foam on top']},
-  { id: 'americano', name:'Americano', ingredients:['espresso','hot water'], tags:['bitter','strong'], sweetness:1, bitterness:4, desc:'Espresso diluted with hot water for a longer drink.', image:'images/americano.jpg', method:['Pull espresso','Add hot water to taste']},
-  { id: 'espresso', name:'Espresso', ingredients:['espresso'], tags:['strong','bitter'], sweetness:0, bitterness:5, desc:'Concentrated coffee shot. Intense and bold.', image:'espresso.jpg', method:['Pull single/double shot using espresso machine']},
-  { id: 'mocha', name:'Mocha', ingredients:['espresso','milk','chocolate'], tags:['sweet'], sweetness:4, bitterness:2, desc:'Chocolate + espresso + milk — dessert like.', image:'mocha.jpg', method:['Mix chocolate with steamed milk','Pour over espresso','Top with whipped cream if desired']},
-  { id: 'macchiato', name:'Macchiato', ingredients:['espresso','milk foam'], tags:['bitter','strong'], sweetness:1, bitterness:4, desc:'Espresso "stained" with a dash of foam.', image:'macchiato.jpg', method:['Pull espresso shot','Top with a small dollop of milk foam']},
-  { id: 'flatwhite', name:'Flat White', ingredients:['espresso','microfoam'], tags:['milky','strong'], sweetness:2, bitterness:3, desc:'Velvety microfoam over espresso.', image:'flatwhite.jpg', method:['Pull double shot','Prepare microfoam and pour over espresso']},
-  { id: 'icedlatte', name:'Iced Latte', ingredients:['espresso','milk','ice'], tags:['milky','sweet'], sweetness:3, bitterness:2, desc:'Chilled espresso over milk and ice.', image:'icedlatte.jpg', method:['Pour milk over ice','Add espresso shot(s)']},
-  { id: 'frappuccino', name:'Frappuccino', ingredients:['espresso','milk','ice','sugar'], tags:['sweet'], sweetness:5, bitterness:1, desc:'Blended coffee treat.', image:'frappuccino.jpg', method:['Blend espresso, milk, ice and sugar until smooth']},
-  { id: 'affogato', name:'Affogato', ingredients:['espresso','ice cream'], tags:['sweet','dessert'], sweetness:5, bitterness:1, desc:'Espresso poured over ice cream.', image:'affogato.jpg', method:['Scoop ice cream into cup','Pour hot espresso over it']}
+  { id:'latte', name:'Latte', ingredients:['espresso','milk'], tags:['milky'], sweetness:2, bitterness:2, image:'images/latte.jpg', desc:'Smooth espresso with steamed milk.', method:['Pull a shot of espresso','Steam milk until creamy','Pour milk over espresso'] },
+  { id:'cappuccino', name:'Cappuccino', ingredients:['espresso','milk','milk foam'], tags:['milky'], sweetness:2, bitterness:3, image:'images/cappuccino.jpg', desc:'Equal parts espresso, steamed milk and foam.', method:['Pull espresso shot','Steam milk and create foam','Spoon foam on top'] },
+  { id:'americano', name:'Americano', ingredients:['espresso','hot water'], tags:['bitter','strong'], sweetness:1, bitterness:4, image:'images/americano.jpg', desc:'Espresso diluted with hot water.', method:['Pull espresso','Add hot water to taste'] },
+  { id:'espresso', name:'Espresso', ingredients:['espresso'], tags:['strong','bitter'], sweetness:0, bitterness:5, image:'images/espresso.jpg', desc:'Concentrated coffee shot.', method:['Pull single/double shot using espresso machine'] },
+  { id:'mocha', name:'Mocha', ingredients:['espresso','milk','chocolate'], tags:['sweet'], sweetness:4, bitterness:2, image:'images/mocha.jpg', desc:'Chocolate + espresso + milk — dessert like.', method:['Mix chocolate with steamed milk','Pour over espresso','Top with whipped cream if desired'] },
+  { id:'macchiato', name:'Macchiato', ingredients:['espresso','milk foam'], tags:['bitter','strong'], sweetness:1, bitterness:4, image:'images/macchiato.jpg', desc:'Espresso "stained" with a dash of foam.', method:['Pull espresso shot','Top with a small dollop of milk foam'] },
+  { id:'flatwhite', name:'Flat White', ingredients:['espresso','microfoam'], tags:['milky','strong'], sweetness:2, bitterness:3, image:'images/flatwhite.jpg', desc:'Velvety microfoam over espresso.', method:['Pull double shot','Prepare microfoam and pour over espresso'] },
+  { id:'icedlatte', name:'Iced Latte', ingredients:['espresso','milk','ice'], tags:['milky','sweet','cold'], sweetness:3, bitterness:2, image:'images/icedlatte.jpg', desc:'Chilled espresso over milk and ice.', method:['Pour milk over ice','Add espresso shot(s)'] },
+  { id:'frappuccino', name:'Frappuccino', ingredients:['espresso','milk','ice','sugar'], tags:['sweet','cold'], sweetness:5, bitterness:1, image:'images/frappuccino.jpg', desc:'Blended coffee treat.', method:['Blend espresso, milk, ice and sugar until smooth'] },
+  { id:'affogato', name:'Affogato', ingredients:['espresso','ice cream'], tags:['sweet','dessert'], sweetness:5, bitterness:1, image:'images/affogato.jpg', desc:'Espresso poured over ice cream.', method:['Scoop ice cream into cup','Pour hot espresso over it'] }
 ];
 
+// derive ingredient list
+const KNOWN_INGREDIENTS = Array.from(new Set(coffeeDrinks.flatMap(d=>d.ingredients))).sort();
+
 // ---------- Utilities ----------
-function normalize(s){return s.trim().toLowerCase()}
+function normalize(s){return (s||'').trim().toLowerCase();}
+function debounce(fn,ms){let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms);} }
 
-function levenshtein(a,b){if(a===b)return 0;const al=a.length, bl=b.length; if(al===0) return bl; if(bl===0) return al; let v0=new Array(bl+1), v1=new Array(bl+1); for(let j=0;j<=bl;j++) v0[j]=j; for(let i=0;i<al;i++){ v1[0]=i+1; for(let j=0;j<bl;j++){ let cost = a[i]===b[j]?0:1; v1[j+1]=Math.min(v1[j]+1, v0[j+1]+1, v0[j]+cost); } v0=v1.slice(); } return v0[bl]; }
-function fuzzyMatch(a,b){ a=normalize(a); b=normalize(b); if(a.includes(b) || b.includes(a)) return true; const d=levenshtein(a,b); const thresh=Math.max(1, Math.floor(Math.min(a.length,b.length)*0.3)); return d<=thresh; }
+function levenshtein(a,b){ if(a===b) return 0; const al=a.length, bl=b.length; if(al===0) return bl; if(bl===0) return al; let v0=new Array(bl+1), v1=new Array(bl+1); for(let j=0;j<=bl;j++) v0[j]=j; for(let i=0;i<al;i++){ v1[0]=i+1; for(let j=0;j<bl;j++){ let cost = a[i]===b[j]?0:1; v1[j+1]=Math.min(v1[j]+1, v0[j+1]+1, v0[j]+cost); } v0=v1.slice(); } return v0[bl]; }
+function fuzzyMatch(a,b){ a=normalize(a); b=normalize(b); if(a.includes(b) || b.includes(a)) return true; const d=levenshtein(a,b); const thresh=Math.max(1, Math.floor(Math.min(a.length,b.length)*0.35)); return d<=thresh; }
 
-// ---------- App logic ----------
-const state = { favorites: new Set(), theme: 'light' };
+// ---------- State ----------
+const state = { favorites: new Set(), theme: 'auto' };
 
-function loadFavorites(){try{const raw=localStorage.getItem('cf_favs'); if(raw){const arr=JSON.parse(raw); state.favorites=new Set(arr);} else state.favorites=new Set(); renderFavs();}catch(e){console.warn(e)} }
-function saveFavorites(){localStorage.setItem('cf_favs', JSON.stringify(Array.from(state.favorites))); renderFavs(); }
+function saveFavorites(){ localStorage.setItem('cf_favs', JSON.stringify(Array.from(state.favorites))); renderFavs(); }
+function loadFavorites(){ try{ const raw=localStorage.getItem('cf_favs'); if(raw){ state.favorites=new Set(JSON.parse(raw)); } else state.favorites=new Set(); }catch(e){ state.favorites=new Set(); } renderFavs(); }
 
-function renderFavs(){const el=document.getElementById('favList'); el.innerHTML=''; if(state.favorites.size===0){el.innerHTML='<div class="muted small">No favorites yet — click the heart on a drink card.</div>';return;} for(const id of state.favorites){const drink=coffeeDrinks.find(d=>d.id===id); if(!drink) continue; const div=document.createElement('div'); div.className='fav-item'; div.innerHTML=`<div style="width:44px;height:44px;border-radius:8px;overflow:hidden"><img src="${drink.image}" style="width:100%;height:100%;object-fit:cover"></div><div style="flex:1"><div style="font-weight:700">${drink.name}</div><div class="muted small">${drink.tags.join(', ')}</div></div><button class="secondary" data-id="${id}">Remove</button>`; el.appendChild(div); div.querySelector('button').addEventListener('click', e=>{ state.favorites.delete(id); saveFavorites(); }); }
+function renderFavs(){ const el=document.getElementById('favList'); el.innerHTML=''; if(state.favorites.size===0){ el.innerHTML='<div class="muted small">No favorites yet — click the heart.</div>'; return; } for(const id of state.favorites){ const d=coffeeDrinks.find(x=>x.id===id); if(!d) continue; const row=document.createElement('div'); row.className='fav-item'; row.innerHTML=`<div style="width:44px;height:44px;border-radius:8px;overflow:hidden"><img src="${d.image}" style="width:100%;height:100%;object-fit:cover"></div><div style="flex:1"><div style="font-weight:700">${d.name}</div><div class="muted small">${d.tags.join(', ')}</div></div><button class="secondary" data-id="${id}">Remove</button>`; el.appendChild(row); row.querySelector('button').addEventListener('click',()=>{ state.favorites.delete(id); saveFavorites(); }); }
 }
 
-// ---------- Matching algorithm ----------
-function search(){
-  const raw = document.getElementById('ingredientInput').value;
-  const pref = document.getElementById('preferenceSelect').value;
-  const allowPartialCheckbox = document.getElementById('allowPartial');
-  const showMissingCount = document.getElementById('showMissingCount').checked;
-  const autoSuggest = document.getElementById('autoSuggest').checked;
+// ---------- Matching & rendering ----------
+function getUserIngredients(){ const raw=document.getElementById('ingredientInput').value; return raw.split(',').map(s=>normalize(s)).filter(Boolean); }
 
-  const allowPartial = allowPartialCheckbox ? allowPartialCheckbox.checked : true;
-  const userIngs = raw.split(',').map(s=>normalize(s)).filter(Boolean);
-
-  if(userIngs.length===0){ document.getElementById('matchesInfo').innerText='Please type at least one ingredient.'; document.getElementById('results').innerHTML=''; return; }
-
-  const results = coffeeDrinks.map(drink=>{
-    const ingSet = drink.ingredients.map(normalize);
-    let matched = 0; let partialMatched=0; let missing = [];
+function computeMatches(userIngs, pref, allowPartial){
+  return coffeeDrinks.map(drink=>{
+    const ingSet=drink.ingredients.map(normalize);
+    let matched=0, partial=0, missing=[];
     for(const u of userIngs){
-      let foundExact=false; for(const di of ingSet){ if(di===u){ matched++; foundExact=true; break; } }
-      if(foundExact) continue;
-      let found=false; for(const di of ingSet){ if(fuzzyMatch(di,u)){ found=true; break; } }
-      if(found){ partialMatched++; } else { missing.push(u); }
+      if(ingSet.includes(u)){ matched++; continue; }
+      const f=ingSet.find(di=>fuzzyMatch(di,u));
+      if(f){ partial++; } else { missing.push(u); }
     }
-    const totalNeeded = ingSet.length;
-    const coveredByUser = Math.min(totalNeeded, matched + (allowPartial? partialMatched*0.7:0));
-    const matchPct = Math.round((coveredByUser/totalNeeded)*100);
-
-    let prefScore = 0;
-    if(pref !== 'any'){
-      if(drink.tags.includes(pref)) prefScore = 10;
-      if(pref==='sweet' && drink.sweetness>=4) prefScore += 5;
-      if(pref==='bitter' && drink.bitterness>=4) prefScore += 5;
-      if(pref==='milky' && drink.tags.includes('milky')) prefScore += 5;
-      if(pref==='strong' && drink.tags.includes('strong')) prefScore += 5;
+    const covered = Math.min(ingSet.length, matched + (allowPartial? partial*0.7:0));
+    const matchPct = Math.round((covered/ingSet.length)*100);
+    let prefScore=0;
+    if(pref!=='any'){
+      if(drink.tags.includes(pref)) prefScore+=12;
+      if(pref==='sweet' && drink.sweetness>=4) prefScore+=6;
+      if(pref==='bitter' && drink.bitterness>=4) prefScore+=6;
+      if(pref==='milky' && drink.tags.includes('milky')) prefScore+=6;
+      if(pref==='strong' && drink.tags.includes('strong')) prefScore+=6;
+      if(pref==='cold' && drink.tags.includes('cold')) prefScore+=6;
     }
-
-    const score = matchPct*1 + prefScore;
-    return {...drink, matched, partialMatched, missing, matchPct, score };
-  });
-
-  const filtered = results.filter(r=>{
-    if(r.missing.length>0 && !allowPartial) return false;
-    return r.matchPct>0;
-  });
-
-  filtered.sort((a,b)=>b.score - a.score || b.matchPct - a.matchPct);
-
-  renderResults(filtered, {userIngs, showMissingCount});
+    const score = matchPct + prefScore;
+    return {...drink, matched, partial, missing, matchPct, score };
+  }).filter(r=>r.matchPct>0 || r.missing.length<=1);
 }
 
 function renderResults(list, opts={}){
-  const container = document.getElementById('results'); container.innerHTML='';
-  const info = document.getElementById('matchesInfo');
-  if(list.length===0){ info.innerText='No coffee drinks found. Try toggling "Allow partial matches" or try fewer ingredients.'; return; }
-  info.innerText = `${list.length} match(es) — click a drink to view steps. Use favorites to save.`;
-
+  const container=document.getElementById('results'); container.innerHTML=''; const info=document.getElementById('matchesInfo');
+  if(!list || list.length===0){ info.innerText='No coffee drinks found. Try different ingredients or enable partial matches.'; return; }
+  list.sort((a,b)=>b.score-a.score || b.matchPct - a.matchPct);
+  info.innerText = `${list.length} result(s) — click a card for details.`;
   for(const drink of list){
-    const card = document.createElement('div'); card.className='drink-card fade-in card';
-    card.innerHTML = `
+    const el=document.createElement('div'); el.className='drink-card';
+    const missingCount = drink.missing.length;
+    el.innerHTML = `
       <img src="${drink.image}" alt="${drink.name}">
       <div class="drink-body">
-        <div class="drink-name">${drink.name}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-weight:800">${drink.name}</div>
+          ${ missingCount>0 ? `<div class="missing-badge">Missing ${missingCount}</div>` : '' }
+        </div>
         <div class="badges">${drink.ingredients.map(i=>`<div class="badge">${i}</div>`).join('')}</div>
         <div class="muted">${drink.desc}</div>
-        <div style="margin-top:8px"><div class="meter" aria-hidden><i style="width:${drink.matchPct}%"></i></div></div>
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+          <div style="width:90px"><div class="meter-label">Match ${drink.matchPct}%</div><div class="meter"><i style="width:${drink.matchPct}%"></i></div></div>
+          <div style="flex:1">
+            <div class="meters">
+              <div style="flex-basis:30%"><div class="meter-label">Strength</div><div class="meter"><i style="width:${(drink.bitterness/5)*100}%"></i></div></div>
+              <div style="flex-basis:30%"><div class="meter-label">Sweet</div><div class="meter"><i style="width:${(drink.sweetness/5)*100}%"></i></div></div>
+            </div>
+          </div>
+        </div>
         <div class="meta">
-          <div class="muted small">Match ${drink.matchPct}%</div>
+          <div class="muted small">${drink.tags.join(', ')}</div>
           <div style="display:flex;gap:8px;align-items:center">
-            <button class="fav" data-id="${drink.id}">${state.favorites.has(drink.id)?'💖':'🤍'}</button>
+            <button class="fav" data-id="${drink.id}">${ state.favorites.has(drink.id)?'💖':'🤍' }</button>
             <button class="secondary" data-view="${drink.id}">View</button>
           </div>
         </div>
       </div>
     `;
-    container.appendChild(card);
-
-    // favorite toggle
-    const favBtn = card.querySelector('.fav');
-    favBtn.addEventListener('click', ()=>{ if(state.favorites.has(drink.id)) state.favorites.delete(drink.id); else state.favorites.add(drink.id); saveFavorites(); renderResults(list, opts); });
-
-    // view details
-    const viewBtn = card.querySelector('button[data-view]');
-    viewBtn.addEventListener('click', ()=>{ showDetails(drink); });
+    container.appendChild(el);
+    // handlers
+    el.querySelector('.fav').addEventListener('click', ()=>{ if(state.favorites.has(drink.id)) state.favorites.delete(drink.id); else state.favorites.add(drink.id); saveFavorites(); renderResults(list, opts); });
+    el.querySelector('button[data-view]').addEventListener('click', ()=>showDetails(drink));
   }
 }
 
-function showDetails(drink){
-  // create backdrop
-  const backdrop = document.createElement('div'); backdrop.className='modal-backdrop';
-  const modal = document.createElement('div'); modal.className='card'; modal.style.maxHeight='90vh'; modal.style.overflow='auto'; modal.style.width='min(760px,94%)';
-  modal.innerHTML = `
-    <div style="display:flex;gap:12px;align-items:center">
-      <div style="width:88px;height:88px;border-radius:12px;overflow:hidden"><img src="${drink.image}" style="width:100%;height:100%;object-fit:cover"></div>
-      <div>
-        <div style="font-weight:800;font-size:20px">${drink.name}</div>
-        <div class="muted small">${drink.tags.join(' • ')}</div>
-      </div>
-      <div style="flex:1"></div>
-      <button class="secondary" id="closeModalBtn">Close</button>
-    </div>
-    <hr>
-    <div style="display:flex;gap:18px;flex-wrap:wrap">
-      <div style="flex:1;min-width:260px">
-        <h4>Ingredients</h4>
-        <ul>${drink.ingredients.map(i=>`<li>${i}</li>`).join('')}</ul>
-        <h4>Method</h4>
-        <ol>${drink.method.map(s=>`<li>${s}</li>`).join('')}</ol>
-      </div>
-      <div style="width:240px;min-width:200px">
-        <h4>Description</h4>
-        <div class="muted">${drink.desc}</div>
-        <h4 style="margin-top:12px">Notes</h4>
-        <div class="muted small">This is a suggested method — vary shots and milk ratios to taste.</div>
-        <div style="margin-top:12px;display:flex;gap:8px"><button id="addFavBtn" class="secondary">${state.favorites.has(drink.id)?'Remove Favorite':'Add Favorite'}</button></div>
-      </div>
-    </div>
-  `;
+// ---------- Search & UI helpers ----------
+const doSearch = debounce(()=>{
+  const userIngs = getUserIngredients();
+  const pref = document.getElementById('preferenceSelect').value;
+  const allowPartial = document.getElementById('allowPartial').checked;
+  const matches = computeMatches(userIngs, pref, allowPartial);
+  renderResults(matches, {userIngs});
+}, 250);
 
+// suggestions dropdown
+function showSuggestions(q){ const box=document.getElementById('suggestions'); if(!q){ box.style.display='none'; return; } const items = KNOWN_INGREDIENTS.filter(i=>i.includes(q) || fuzzyMatch(i,q)).slice(0,8); if(items.length===0){ box.style.display='none'; return;} box.innerHTML = items.map(it=>`<div data-val="${it}">${it}</div>`).join(''); box.style.display='block'; box.querySelectorAll('div').forEach(node=>node.addEventListener('click', ()=>{ const cur=document.getElementById('ingredientInput'); if(cur.value.trim() && !cur.value.trim().endsWith(',')) cur.value = cur.value + ', ' + node.dataset.val; else cur.value = node.dataset.val; box.style.display='none'; doSearch(); })); }
+
+// chips helper
+function renderChips(){ const row=document.getElementById('chipRow'); row.innerHTML=''; for(const ing of KNOWN_INGREDIENTS){ const c=document.createElement('div'); c.className='chip'; c.textContent=ing; c.addEventListener('click', ()=>{ const input=document.getElementById('ingredientInput'); if(input.value.trim()) input.value = input.value + ', ' + ing; else input.value = ing; doSearch(); }); row.appendChild(c);} }
+
+// ---------- Modal & details ----------
+function showDetails(drink){ const modals=document.getElementById('modals'); const backdrop=document.createElement('div'); backdrop.className='modal-backdrop'; const modal=document.createElement('div'); modal.className='card'; modal.style.width='min(780px,94%)'; modal.style.maxHeight='90vh'; modal.style.overflow='auto'; modal.innerHTML = `
+  <div style="display:flex;gap:12px;align-items:center">
+    <div style="width:100px;height:100px;border-radius:12px;overflow:hidden"><img src="${drink.image}" style="width:100%;height:100%;object-fit:cover"></div>
+    <div>
+      <div style="font-weight:800;font-size:20px">${drink.name}</div>
+      <div class="muted small">${drink.tags.join(' • ')}</div>
+    </div>
+    <div style="flex:1"></div>
+    <button class="secondary" id="closeModal">Close</button>
+  </div>
+  <hr>
+  <div style="display:flex;gap:18px;flex-wrap:wrap">
+    <div style="flex:1;min-width:280px">
+      <h4>Ingredients</h4>
+      <ul>${drink.ingredients.map(i=>`<li>${i}</li>`).join('')}</ul>
+      <h4>Method</h4>
+      <ol>${drink.method.map(s=>`<li>${s}</li>`).join('')}</ol>
+    </div>
+    <div style="width:260px;min-width:220px">
+      <h4>Description</h4>
+      <div class="muted">${drink.desc}</div>
+      <h4 style="margin-top:12px">Notes</h4>
+      <div class="muted small">Adjust shots and milk to taste. Serve hot or cold where applicable.</div>
+      <div style="margin-top:12px;display:flex;gap:8px"><button id="addFavDetail" class="secondary">${ state.favorites.has(drink.id)?'Remove Favorite':'Add Favorite' }</button></div>
+    </div>
+  </div>
+`;
   backdrop.appendChild(modal);
-  document.body.appendChild(backdrop);
-
-  // handlers
-  modal.querySelector('#closeModalBtn').addEventListener('click', ()=>backdrop.remove());
-  modal.querySelector('#addFavBtn').addEventListener('click', ()=>{ if(state.favorites.has(drink.id)) state.favorites.delete(drink.id); else state.favorites.add(drink.id); saveFavorites(); backdrop.remove(); });
+  modals.appendChild(backdrop);
+  modal.querySelector('#closeModal').addEventListener('click', ()=>backdrop.remove());
+  modal.querySelector('#addFavDetail').addEventListener('click', ()=>{ if(state.favorites.has(drink.id)) state.favorites.delete(drink.id); else state.favorites.add(drink.id); saveFavorites(); backdrop.remove(); });
 }
 
-// ---------- Extra UI handlers ----------
-document.getElementById('searchBtn').addEventListener('click', search);
-document.getElementById('ingredientInput').addEventListener('keydown', e=>{ if(e.key==='Enter') search(); });
+// ---------- Quiz (Build My Coffee) ----------
+function openQuiz(){ const modals=document.getElementById('modals'); const backdrop=document.createElement('div'); backdrop.className='modal-backdrop'; const modal=document.createElement('div'); modal.className='card'; modal.style.width='min(560px,94%)'; modal.innerHTML = `
+  <div style="display:flex;align-items:center;gap:12px"><div style="font-weight:800;font-size:18px">Build My Coffee</div><div style="flex:1"></div><button class="secondary" id="closeQuiz">Close</button></div>
+  <hr>
+  <div id="quizContent">
+    <div class="quiz-step"><strong>1.</strong> Hot or Cold?<div style="display:flex;gap:8px;margin-top:8px"><button class="secondary" data-choice="hot">Hot</button><button class="secondary" data-choice="cold">Cold</button></div></div>
+    <div class="quiz-step"><strong>2.</strong> Taste profile?<div style="display:flex;gap:8px;margin-top:8px"><button class="secondary" data-choice="strong">Strong</button><button class="secondary" data-choice="milky">Milky</button><button class="secondary" data-choice="sweet">Sweet</button></div></div>
+    <div class="quiz-step"><strong>3.</strong> Any specific ingredient? (optional)<div style="margin-top:8px"><input id="quizIng" placeholder="e.g. chocolate, ice"></div></div>
+    <div style="margin-top:12px"><button id="quizGo" class="secondary">Suggest</button></div>
+  </div>
+`;
+  backdrop.appendChild(modal); modals.appendChild(backdrop);
+  modal.querySelector('#closeQuiz').addEventListener('click', ()=>backdrop.remove());
+  const choices={};
+  modal.querySelectorAll('button[data-choice]').forEach(b=>b.addEventListener('click', e=>{ const v=e.target.dataset.choice; // toggle
+    if(choices.step1 && choices.step1===v) delete choices.step1; else { if(['hot','cold'].includes(v)) choices.step1=v; if(['strong','milky','sweet'].includes(v)) choices.step2=v; } b.classList.toggle('active'); }));
+  modal.querySelector('#quizGo').addEventListener('click', ()=>{
+    const qIng = normalize(modal.querySelector('#quizIng').value);
+    const pref = choices.step2 || 'any';
+    // build user ingredients
+    const userIngs = qIng ? [qIng] : [];
+    const allowPartial = true;
+    const matches = computeMatches(userIngs, pref, allowPartial);
+    backdrop.remove(); // close quiz
+    renderResults(matches);
+  });
+}
+
+// ---------- Export / Import favorites ----------
+document.getElementById('exportFav').addEventListener('click', ()=>{ const data=JSON.stringify(Array.from(state.favorites)); const blob=new Blob([data],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='coffee-favs.json'; a.click(); URL.revokeObjectURL(url); });
+document.getElementById('importFav').addEventListener('click', ()=>document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change', e=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=ev=>{ try{ const arr=JSON.parse(ev.target.result); state.favorites=new Set(arr); saveFavorites(); }catch(err){ alert('Invalid file'); } }; r.readAsText(f); });
+
+// ---------- small UI wiring ----------
+document.getElementById('ingredientInput').addEventListener('input', e=>{ const q=normalize(e.target.value); const auto = document.getElementById('autoSuggest').checked; if(auto) showSuggestions(q.split(',').pop().trim()); doSearch(); });
+document.getElementById('ingredientInput').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); doSearch(); document.getElementById('suggestions').style.display='none'; } });
+document.getElementById('searchBtn').addEventListener('click', doSearch);
 document.getElementById('clearBtn').addEventListener('click', ()=>{ document.getElementById('ingredientInput').value=''; document.getElementById('results').innerHTML=''; document.getElementById('matchesInfo').innerText='Cleared.'; });
-document.getElementById('shuffleBtn').addEventListener('click', ()=>{ const r = coffeeDrinks[Math.floor(Math.random()*coffeeDrinks.length)]; document.getElementById('ingredientInput').value = r.ingredients.join(', '); search(); });
-document.getElementById('randomMissingBtn').addEventListener('click', ()=>{ 
-  const raw = document.getElementById('ingredientInput').value;
-  if(!raw) { document.getElementById('matchesInfo').innerText='Type something first'; return; }
-  const userIngs = raw.split(',').map(s=>normalize(s)).filter(Boolean);
-  const list = coffeeDrinks.map(d=>{ const ingSet=d.ingredients.map(normalize); let covered=0; for(const u of userIngs){ for(const di of ingSet){ if(di===u || fuzzyMatch(di,u)) { covered++; break;} } } const missing = ingSet.length - covered; return {...d, covered, missing}; }).filter(x=>x.missing>0 && x.missing<=1).sort((a,b)=>a.missing-b.missing);
-  renderResults(list.map(x=>({...x, matchPct: Math.round((x.covered/x.ingredients.length)*100), score:100 - x.missing*10})));
-});
+document.getElementById('shuffleBtn').addEventListener('click', ()=>{ const r = coffeeDrinks[Math.floor(Math.random()*coffeeDrinks.length)]; document.getElementById('ingredientInput').value = r.ingredients.join(', '); doSearch(); });
+document.getElementById('randomMissingBtn').addEventListener('click', ()=>{ const raw=document.getElementById('ingredientInput').value; if(!raw){ document.getElementById('matchesInfo').innerText='Type something first'; return; } const userIngs=raw.split(',').map(s=>normalize(s)).filter(Boolean); const list = coffeeDrinks.map(d=>{ const ingSet=d.ingredients.map(normalize); let covered=0; for(const u of userIngs){ for(const di of ingSet){ if(di===u || fuzzyMatch(di,u)){ covered++; break; } } } const missing=ingSet.length-covered; return {...d, covered, missing}; }).filter(x=>x.missing>0 && x.missing<=1).sort((a,b)=>a.missing-b.missing); renderResults(list.map(x=>({...x, matchPct: Math.round((x.covered/x.ingredients.length)*100), score:100 - x.missing*10}))); });
 
-// favorites import/export
-document.getElementById('exportFav').addEventListener('click', ()=>{ const data = JSON.stringify(Array.from(state.favorites)); const blob = new Blob([data],{type:'application/json'}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='coffee-favs.json'; a.click(); URL.revokeObjectURL(url); });
-document.getElementById('importFav').addEventListener('click', ()=>{ document.getElementById('importFile').click(); });
-document.getElementById('importFile').addEventListener('change', e=>{ const f=e.target.files[0]; if(!f) return; const reader=new FileReader(); reader.onload=ev=>{ try{ const arr=JSON.parse(ev.target.result); state.favorites=new Set(arr); saveFavorites(); }catch(err){ alert('Invalid file'); } }; reader.readAsText(f); });
+// preferences & theme
+const themeToggle = document.getElementById('themeToggle'); themeToggle.addEventListener('change',(e)=>{ if(e.target.checked) document.documentElement.setAttribute('data-theme','dark'); else document.documentElement.removeAttribute('data-theme'); localStorage.setItem('cf_theme', e.target.checked?'dark':'light'); });
 
-// theme toggle
-const themeToggle = document.getElementById('themeToggle'); themeToggle.addEventListener('change', e=>{ if(e.target.checked) { document.documentElement.setAttribute('data-theme','dark'); state.theme='dark'; } else { document.documentElement.removeAttribute('data-theme'); state.theme='light'; } localStorage.setItem('cf_theme', state.theme); });
+// quiz button
+document.getElementById('quizBtn').addEventListener('click', openQuiz);
 
 // init
-(function init(){ const saved = localStorage.getItem('cf_theme'); if(saved==='dark'){ document.documentElement.setAttribute('data-theme','dark'); themeToggle.checked=true; state.theme='dark'; } loadFavorites(); })();
+(function init(){ // system theme
+  const saved=localStorage.getItem('cf_theme'); if(saved==='dark'){ document.documentElement.setAttribute('data-theme','dark'); themeToggle.checked=true; } else if(saved==='light'){ document.documentElement.removeAttribute('data-theme'); themeToggle.checked=false; } else { // auto-detect
+    if(window.matchMedia && window.matchMedia('(prefers-color-scheme:dark)').matches){ document.documentElement.setAttribute('data-theme','dark'); themeToggle.checked=true; }
+  }
+  loadFavorites(); renderChips(); // initial results show all
+  renderResults(computeMatches([], 'any', true));
+})();
 
 </script>
 </body>
