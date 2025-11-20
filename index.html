@@ -1,81 +1,338 @@
+
 <!doctype html>
-container.appendChild(card);
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Coffee Drink Finder</title>
+  <style>
+    :root{
+      --bg:#f6f1ed; --card:#fff; --accent:#6b3e26; --muted:#6f6f6f; --cream:#fff6ee; --glass: rgba(255,255,255,0.6);
+    }
+    [data-theme="dark"]{ --bg:#1b1816; --card:#272322; --accent:#d6a77a; --muted:#cfc6be; --cream:#332b26; --glass: rgba(255,255,255,0.04);} 
 
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background:linear-gradient(180deg,var(--bg),#efe7db); color:#222; min-height:100vh}
+    header{display:flex;align-items:center;gap:16px;padding:20px 28px}
+    .logo{display:flex;align-items:center;gap:12px}
+    .logo .cup{width:48px;height:48px;border-radius:10px;background:linear-gradient(180deg,#ffffff,#f3e6db);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(107,62,38,0.14)}
+    .title{font-weight:700;font-size:20px;color:var(--accent)}
 
-// favorite toggle
-card.querySelector('.fav').addEventListener('click', ()=>{ if(state.favorites.has(drink.id)) state.favorites.delete(drink.id); else state.favorites.add(drink.id); saveFavorites(); renderResults(list, opts); });
+    .container{max-width:1100px;margin:0 auto;padding:20px}
+    .panel{display:grid;grid-template-columns:1fr 420px;gap:24px}
 
+    .card{background:var(--card);border-radius:14px;padding:18px;box-shadow:0 6px 20px rgba(20,20,20,0.06);}
 
-// view details
-card.querySelector('button[data-view]').addEventListener('click', ()=>{ showDetails(drink); });
+    .search-row{display:flex;gap:12px}
+    input[type=text]{flex:1;padding:12px 14px;border-radius:10px;border:1px solid #e6dcd2;font-size:15px}
+    select{padding:12px;border-radius:10px;border:1px solid #e6dcd2;font-size:15px}
+    button{background:var(--accent);color:white;padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:600}
+    button.secondary{background:transparent;border:1px solid #e6dcd2;color:var(--accent)}
+
+    .hint{color:var(--muted);font-size:13px;margin-top:8px}
+
+    .results{margin-top:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+    .drink-card{display:flex;flex-direction:column;border-radius:12px;overflow:hidden;border:1px solid rgba(0,0,0,0.04)}
+    .drink-card img{width:100%;height:140px;object-fit:cover}
+    .drink-body{padding:12px}
+    .drink-name{font-weight:700;margin:0 0 6px}
+    .badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+    .badge{font-size:12px;padding:4px 8px;border-radius:999px;background:var(--cream);border:1px solid rgba(0,0,0,0.04)}
+    .muted{color:var(--muted);font-size:13px}
+
+    .meta{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+    .fav{cursor:pointer;border-radius:8px;padding:6px}
+
+    .side{position:sticky;top:20px;height:fit-content}
+    .prefs{display:flex;flex-direction:column;gap:10px}
+
+    .toggle{display:flex;gap:8px;align-items:center}
+    .small{font-size:13px;color:var(--muted)}
+
+    .footer{margin-top:30px;text-align:center;color:var(--muted);font-size:13px;padding-bottom:100px}
+
+    /* responsive */
+    @media (max-width:980px){.panel{grid-template-columns:1fr} .side{position:static}}
+
+    /* subtle animations */
+    .fade-in{animation:fadeIn .35s ease both}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+    /* match meter */
+    .meter{height:8px;background:linear-gradient(90deg,#eee,#eee);border-radius:6px;overflow:hidden}
+    .meter > i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#d6a77a,#6b3e26)}
+
+    /* favorites list */
+    .fav-list{display:flex;flex-direction:column;gap:8px}
+    .fav-item{display:flex;gap:10px;align-items:center;padding:8px;border-radius:8px}
+
+    /* modal backdrop */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:9998}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <div class="cup">☕</div>
+      <div>
+        <div class="title">Coffee Finder</div>
+        <div class="small">Find drinks from what you already have</div>
+      </div>
+    </div>
+    <div style="flex:1"></div>
+    <div class="toggle">
+      <label class="small" for="themeToggle">Dark</label>
+      <input id="themeToggle" type="checkbox">
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="panel">
+      <section class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+          <div>
+            <h2 style="margin:0">What do you have?</h2>
+            <div class="hint">Type ingredients separated by commas (e.g. espresso, milk, chocolate). The app supports fuzzy matching.</div>
+          </div>
+          <div style="text-align:right">
+            <div class="small">Quick tips</div>
+            <div class="muted" style="font-size:13px">Try: "espresso, milk" or "espresso"</div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px" class="search-row">
+          <input id="ingredientInput" type="text" placeholder="eg: espresso, milk, ice">
+          <select id="preferenceSelect" aria-label="preference">
+            <option value="any">Any taste</option>
+            <option value="sweet">Sweet</option>
+            <option value="bitter">Bitter</option>
+            <option value="milky">Milky</option>
+            <option value="strong">Strong</option>
+          </select>
+          <button id="searchBtn">Find</button>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="secondary" id="clearBtn">Clear</button>
+          <button class="secondary" id="shuffleBtn">Surprise me</button>
+          <button class="secondary" id="randomMissingBtn">Show close matches</button>
+        </div>
+
+        <div id="matchesInfo" style="margin-top:14px" class="muted">No search yet. Try entering ingredients and press Find.</div>
+
+        <div id="results" class="results fade-in"></div>
+
+      </section>
+
+      <aside class="side">
+        <div class="card">
+          <h3 style="margin-top:0">Preferences</h3>
+          <div class="prefs">
+            <div class="small">Taste filter will boost drinks that match the selected flavor</div>
+            <label class="small" style="margin-top:8px"><input type="checkbox" id="allowPartial" checked> Allow partial ingredient matches</label>
+            <label class="small"><input type="checkbox" id="showMissingCount" checked> Show missing ingredients count</label>
+            <label class="small"><input type="checkbox" id="autoSuggest" checked> Auto-suggest similar ingredients</label>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3 style="margin-top:0">Favorites</h3>
+          <div id="favList" class="fav-list"></div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button id="exportFav" class="secondary">Export</button>
+            <button id="importFav" class="secondary">Import</button>
+          </div>
+          <input type="file" id="importFile" style="display:none">
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3 style="margin-top:0">About</h3>
+          <div class="small muted">Interactive demo using stored coffee drink data. Push to GitHub to share or host with GitHub Pages.</div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="footer">Made with ☕ · Try different taste filters and click a card for steps. Favorites persist in your browser.</div>
+  </main>
+
+<script>
+// ---------- Data: coffee drinks (local images) ----------
+const coffeeDrinks = [
+  { id: 'latte', name:'Latte', ingredients:['espresso','milk'], tags:['milky'], sweetness:2, bitterness:2, desc:'Smooth espresso with steamed milk.', image:'images/latte.jpg', method:['Pull a shot of espresso','Steam milk until creamy','Pour milk over espresso']},
+  { id: 'cappuccino', name:'Cappuccino', ingredients:['espresso','milk','milk foam'], tags:['milky'], sweetness:2, bitterness:3, desc:'Equal parts espresso, steamed milk and foam.', image:'images/cappuccino.jpg', method:['Pull espresso shot','Steam milk and create foam','Spoon foam on top']},
+  { id: 'americano', name:'Americano', ingredients:['espresso','hot water'], tags:['bitter','strong'], sweetness:1, bitterness:4, desc:'Espresso diluted with hot water for a longer drink.', image:'images/americano.jpg', method:['Pull espresso','Add hot water to taste']},
+  { id: 'espresso', name:'Espresso', ingredients:['espresso'], tags:['strong','bitter'], sweetness:0, bitterness:5, desc:'Concentrated coffee shot. Intense and bold.', image:'images/espresso.jpg', method:['Pull single/double shot using espresso machine']},
+  { id: 'mocha', name:'Mocha', ingredients:['espresso','milk','chocolate'], tags:['sweet'], sweetness:4, bitterness:2, desc:'Chocolate + espresso + milk — dessert like.', image:'images/mocha.jpg', method:['Mix chocolate with steamed milk','Pour over espresso','Top with whipped cream if desired']},
+  { id: 'macchiato', name:'Macchiato', ingredients:['espresso','milk foam'], tags:['bitter','strong'], sweetness:1, bitterness:4, desc:'Espresso "stained" with a dash of foam.', image:'images/macchiato.jpg', method:['Pull espresso shot','Top with a small dollop of milk foam']},
+  { id: 'flatwhite', name:'Flat White', ingredients:['espresso','microfoam'], tags:['milky','strong'], sweetness:2, bitterness:3, desc:'Velvety microfoam over espresso.', image:'images/flatwhite.jpg', method:['Pull double shot','Prepare microfoam and pour over espresso']},
+  { id: 'icedlatte', name:'Iced Latte', ingredients:['espresso','milk','ice'], tags:['milky','sweet'], sweetness:3, bitterness:2, desc:'Chilled espresso over milk and ice.', image:'images/icedlatte.jpg', method:['Pour milk over ice','Add espresso shot(s)']},
+  { id: 'frappuccino', name:'Frappuccino', ingredients:['espresso','milk','ice','sugar'], tags:['sweet'], sweetness:5, bitterness:1, desc:'Blended coffee treat.', image:'images/frappuccino.jpg', method:['Blend espresso, milk, ice and sugar until smooth']},
+  { id: 'affogato', name:'Affogato', ingredients:['espresso','ice cream'], tags:['sweet','dessert'], sweetness:5, bitterness:1, desc:'Espresso poured over ice cream.', image:'images/affogato.jpg', method:['Scoop ice cream into cup','Pour hot espresso over it']}
+];
+
+// ---------- Utilities ----------
+function normalize(s){return s.trim().toLowerCase()}
+
+function levenshtein(a,b){if(a===b)return 0;const al=a.length, bl=b.length; if(al===0) return bl; if(bl===0) return al; let v0=new Array(bl+1), v1=new Array(bl+1); for(let j=0;j<=bl;j++) v0[j]=j; for(let i=0;i<al;i++){ v1[0]=i+1; for(let j=0;j<bl;j++){ let cost = a[i]===b[j]?0:1; v1[j+1]=Math.min(v1[j]+1, v0[j+1]+1, v0[j]+cost); } v0=v1.slice(); } return v0[bl]; }
+function fuzzyMatch(a,b){ a=normalize(a); b=normalize(b); if(a.includes(b) || b.includes(a)) return true; const d=levenshtein(a,b); const thresh=Math.max(1, Math.floor(Math.min(a.length,b.length)*0.3)); return d<=thresh; }
+
+// ---------- App logic ----------
+const state = { favorites: new Set(), theme: 'light' };
+
+function loadFavorites(){try{const raw=localStorage.getItem('cf_favs'); if(raw){const arr=JSON.parse(raw); state.favorites=new Set(arr);} else state.favorites=new Set(); renderFavs();}catch(e){console.warn(e)} }
+function saveFavorites(){localStorage.setItem('cf_favs', JSON.stringify(Array.from(state.favorites))); renderFavs(); }
+
+function renderFavs(){const el=document.getElementById('favList'); el.innerHTML=''; if(state.favorites.size===0){el.innerHTML='<div class="muted small">No favorites yet — click the heart on a drink card.</div>';return;} for(const id of state.favorites){const drink=coffeeDrinks.find(d=>d.id===id); if(!drink) continue; const div=document.createElement('div'); div.className='fav-item'; div.innerHTML=`<div style="width:44px;height:44px;border-radius:8px;overflow:hidden"><img src="${drink.image}" style="width:100%;height:100%;object-fit:cover"></div><div style="flex:1"><div style="font-weight:700">${drink.name}</div><div class="muted small">${drink.tags.join(', ')}</div></div><button class="secondary" data-id="${id}">Remove</button>`; el.appendChild(div); div.querySelector('button').addEventListener('click', e=>{ state.favorites.delete(id); saveFavorites(); }); }
 }
+
+// ---------- Matching algorithm ----------
+function search(){
+  const raw = document.getElementById('ingredientInput').value;
+  const pref = document.getElementById('preferenceSelect').value;
+  const allowPartialCheckbox = document.getElementById('allowPartial');
+  const showMissingCount = document.getElementById('showMissingCount').checked;
+  const autoSuggest = document.getElementById('autoSuggest').checked;
+
+  const allowPartial = allowPartialCheckbox ? allowPartialCheckbox.checked : true;
+  const userIngs = raw.split(',').map(s=>normalize(s)).filter(Boolean);
+
+  if(userIngs.length===0){ document.getElementById('matchesInfo').innerText='Please type at least one ingredient.'; document.getElementById('results').innerHTML=''; return; }
+
+  const results = coffeeDrinks.map(drink=>{
+    const ingSet = drink.ingredients.map(normalize);
+    let matched = 0; let partialMatched=0; let missing = [];
+    for(const u of userIngs){
+      let foundExact=false; for(const di of ingSet){ if(di===u){ matched++; foundExact=true; break; } }
+      if(foundExact) continue;
+      let found=false; for(const di of ingSet){ if(fuzzyMatch(di,u)){ found=true; break; } }
+      if(found){ partialMatched++; } else { missing.push(u); }
+    }
+    const totalNeeded = ingSet.length;
+    const coveredByUser = Math.min(totalNeeded, matched + (allowPartial? partialMatched*0.7:0));
+    const matchPct = Math.round((coveredByUser/totalNeeded)*100);
+
+    let prefScore = 0;
+    if(pref !== 'any'){
+      if(drink.tags.includes(pref)) prefScore = 10;
+      if(pref==='sweet' && drink.sweetness>=4) prefScore += 5;
+      if(pref==='bitter' && drink.bitterness>=4) prefScore += 5;
+      if(pref==='milky' && drink.tags.includes('milky')) prefScore += 5;
+      if(pref==='strong' && drink.tags.includes('strong')) prefScore += 5;
+    }
+
+    const score = matchPct*1 + prefScore;
+    return {...drink, matched, partialMatched, missing, matchPct, score };
+  });
+
+  const filtered = results.filter(r=>{
+    if(r.missing.length>0 && !allowPartial) return false;
+    return r.matchPct>0;
+  });
+
+  filtered.sort((a,b)=>b.score - a.score || b.matchPct - a.matchPct);
+
+  renderResults(filtered, {userIngs, showMissingCount});
 }
 
+function renderResults(list, opts={}){
+  const container = document.getElementById('results'); container.innerHTML='';
+  const info = document.getElementById('matchesInfo');
+  if(list.length===0){ info.innerText='No coffee drinks found. Try toggling "Allow partial matches" or try fewer ingredients.'; return; }
+  info.innerText = `${list.length} match(es) — click a drink to view steps. Use favorites to save.`;
+
+  for(const drink of list){
+    const card = document.createElement('div'); card.className='drink-card fade-in card';
+    card.innerHTML = `
+      <img src="${drink.image}" alt="${drink.name}">
+      <div class="drink-body">
+        <div class="drink-name">${drink.name}</div>
+        <div class="badges">${drink.ingredients.map(i=>`<div class="badge">${i}</div>`).join('')}</div>
+        <div class="muted">${drink.desc}</div>
+        <div style="margin-top:8px"><div class="meter" aria-hidden><i style="width:${drink.matchPct}%"></i></div></div>
+        <div class="meta">
+          <div class="muted small">Match ${drink.matchPct}%</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="fav" data-id="${drink.id}">${state.favorites.has(drink.id)?'💖':'🤍'}</button>
+            <button class="secondary" data-view="${drink.id}">View</button>
+          </div>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+
+    // favorite toggle
+    const favBtn = card.querySelector('.fav');
+    favBtn.addEventListener('click', ()=>{ if(state.favorites.has(drink.id)) state.favorites.delete(drink.id); else state.favorites.add(drink.id); saveFavorites(); renderResults(list, opts); });
+
+    // view details
+    const viewBtn = card.querySelector('button[data-view]');
+    viewBtn.addEventListener('click', ()=>{ showDetails(drink); });
+  }
+}
 
 function showDetails(drink){
-// modal-lite: reuse results area to show details temporarily
-const modal = document.createElement('div'); modal.className='card';
-modal.style.position='fixed'; modal.style.left='50%'; modal.style.top='50%'; modal.style.transform='translate(-50%,-50%)'; modal.style.width='min(720px,92%)'; modal.style.maxHeight='90vh'; modal.style.overflow='auto'; modal.style.zIndex=9999;
-modal.innerHTML = `
-<div style="display:flex;gap:12px;align-items:center">
-<div style="width:88px;height:88px;border-radius:12px;overflow:hidden"><img src="${drink.image}" style="width:100%;height:100%;object-fit:cover"></div>
-<div>
-<div style="font-weight:800;font-size:20px">${drink.name}</div>
-<div class="muted small">${drink.tags.join(' • ')}</div>
-</div>
-<div style="flex:1"></div>
-<button id="closeModal" class="secondary">Close</button>
-</div>
-<hr>
-<div style="display:flex;gap:18px">
-<div style="flex:1">
-<h4>Ingredients</h4>
-<ul>${drink.ingredients.map(i=>`<li>${i}</li>`).join('')}</ul>
-<h4>Method</h4>
-<ol>${drink.method.map(s=>`<li>${s}</li>`).join('')}</ol>
-</div>
-<div style="width:240px">
-<h4>Description</h4>
-<div class="muted">${drink.desc}</div>
-<h4 style="margin-top:12px">Notes</h4>
-<div class="muted small">This is a suggested method — vary shots and milk ratios to taste.</div>
-<div style="margin-top:12px;display:flex;gap:8px"><button id="addFav" class="secondary">${state.favorites.has(drink.id)?'Remove Favorite':'Add Favorite'}</button></div>
-</div>
-</div>
-`;
-document.body.appendChild(modal);
-document.getElementById('closeModal').addEventListener('click', ()=>modal.remove());
-document.getElementById('addFav').addEventListener('click', ()=>{ if(state.favorites.has(drink.id)) state.favorites.delete(drink.id); else state.favorites.add(drink.id); saveFavorites(); modal.remove(); });
-}
+  // create backdrop
+  const backdrop = document.createElement('div'); backdrop.className='modal-backdrop';
+  const modal = document.createElement('div'); modal.className='card'; modal.style.maxHeight='90vh'; modal.style.overflow='auto'; modal.style.width='min(760px,94%)';
+  modal.innerHTML = `
+    <div style="display:flex;gap:12px;align-items:center">
+      <div style="width:88px;height:88px;border-radius:12px;overflow:hidden"><img src="${drink.image}" style="width:100%;height:100%;object-fit:cover"></div>
+      <div>
+        <div style="font-weight:800;font-size:20px">${drink.name}</div>
+        <div class="muted small">${drink.tags.join(' • ')}</div>
+      </div>
+      <div style="flex:1"></div>
+      <button class="secondary" id="closeModalBtn">Close</button>
+    </div>
+    <hr>
+    <div style="display:flex;gap:18px;flex-wrap:wrap">
+      <div style="flex:1;min-width:260px">
+        <h4>Ingredients</h4>
+        <ul>${drink.ingredients.map(i=>`<li>${i}</li>`).join('')}</ul>
+        <h4>Method</h4>
+        <ol>${drink.method.map(s=>`<li>${s}</li>`).join('')}</ol>
+      </div>
+      <div style="width:240px;min-width:200px">
+        <h4>Description</h4>
+        <div class="muted">${drink.desc}</div>
+        <h4 style="margin-top:12px">Notes</h4>
+        <div class="muted small">This is a suggested method — vary shots and milk ratios to taste.</div>
+        <div style="margin-top:12px;display:flex;gap:8px"><button id="addFavBtn" class="secondary">${state.favorites.has(drink.id)?'Remove Favorite':'Add Favorite'}</button></div>
+      </div>
+    </div>
+  `;
 
+  backdrop.appendChild(modal);
+  document.body.appendChild(backdrop);
+
+  // handlers
+  modal.querySelector('#closeModalBtn').addEventListener('click', ()=>backdrop.remove());
+  modal.querySelector('#addFavBtn').addEventListener('click', ()=>{ if(state.favorites.has(drink.id)) state.favorites.delete(drink.id); else state.favorites.add(drink.id); saveFavorites(); backdrop.remove(); });
+}
 
 // ---------- Extra UI handlers ----------
 document.getElementById('searchBtn').addEventListener('click', search);
 document.getElementById('ingredientInput').addEventListener('keydown', e=>{ if(e.key==='Enter') search(); });
 document.getElementById('clearBtn').addEventListener('click', ()=>{ document.getElementById('ingredientInput').value=''; document.getElementById('results').innerHTML=''; document.getElementById('matchesInfo').innerText='Cleared.'; });
 document.getElementById('shuffleBtn').addEventListener('click', ()=>{ const r = coffeeDrinks[Math.floor(Math.random()*coffeeDrinks.length)]; document.getElementById('ingredientInput').value = r.ingredients.join(', '); search(); });
-document.getElementById('randomMissingBtn').addEventListener('click', ()=>{ // show drinks that are close matches (missing 1 ingredient)
-const raw = document.getElementById('ingredientInput').value;
-if(!raw) { document.getElementById('matchesInfo').innerText='Type something first'; return; }
-const userIngs = raw.split(',').map(s=>normalize(s)).filter(Boolean);
-const list = coffeeDrinks.map(d=>{ const ingSet=d.ingredients.map(normalize); let covered=0; for(const u of userIngs){ for(const di of ingSet){ if(di===u || fuzzyMatch(di,u)) { covered++; break;} } } const missing = ingSet.length - covered; return {...d, covered, missing}; }).filter(x=>x.missing>0 && x.missing<=1).sort((a,b)=>a.missing-b.missing);
-renderResults(list.map(x=>({...x, matchPct: Math.round((x.covered/x.ingredients.length)*100), score:100 - x.missing*10})));
+document.getElementById('randomMissingBtn').addEventListener('click', ()=>{ 
+  const raw = document.getElementById('ingredientInput').value;
+  if(!raw) { document.getElementById('matchesInfo').innerText='Type something first'; return; }
+  const userIngs = raw.split(',').map(s=>normalize(s)).filter(Boolean);
+  const list = coffeeDrinks.map(d=>{ const ingSet=d.ingredients.map(normalize); let covered=0; for(const u of userIngs){ for(const di of ingSet){ if(di===u || fuzzyMatch(di,u)) { covered++; break;} } } const missing = ingSet.length - covered; return {...d, covered, missing}; }).filter(x=>x.missing>0 && x.missing<=1).sort((a,b)=>a.missing-b.missing);
+  renderResults(list.map(x=>({...x, matchPct: Math.round((x.covered/x.ingredients.length)*100), score:100 - x.missing*10})));
 });
-
 
 // favorites import/export
 document.getElementById('exportFav').addEventListener('click', ()=>{ const data = JSON.stringify(Array.from(state.favorites)); const blob = new Blob([data],{type:'application/json'}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='coffee-favs.json'; a.click(); URL.revokeObjectURL(url); });
 document.getElementById('importFav').addEventListener('click', ()=>{ document.getElementById('importFile').click(); });
 document.getElementById('importFile').addEventListener('change', e=>{ const f=e.target.files[0]; if(!f) return; const reader=new FileReader(); reader.onload=ev=>{ try{ const arr=JSON.parse(ev.target.result); state.favorites=new Set(arr); saveFavorites(); }catch(err){ alert('Invalid file'); } }; reader.readAsText(f); });
 
-
 // theme toggle
 const themeToggle = document.getElementById('themeToggle'); themeToggle.addEventListener('change', e=>{ if(e.target.checked) { document.documentElement.setAttribute('data-theme','dark'); state.theme='dark'; } else { document.documentElement.removeAttribute('data-theme'); state.theme='light'; } localStorage.setItem('cf_theme', state.theme); });
 
-
 // init
-(function init(){ const saved=document.getItem?localStorage.getItem('cf_theme'):null; if(saved==='dark'){ document.documentElement.setAttribute('data-theme','dark'); themeToggle.checked=true; state.theme='dark'; } loadFavorites(); })();
-
+(function init(){ const saved = localStorage.getItem('cf_theme'); if(saved==='dark'){ document.documentElement.setAttribute('data-theme','dark'); themeToggle.checked=true; state.theme='dark'; } loadFavorites(); })();
 
 </script>
 </body>
